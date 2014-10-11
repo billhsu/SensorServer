@@ -9,8 +9,15 @@
     tools:context=".SensorServer">
 
     <TextView
-        android:text="@string/hello_world"
+        android:id = "@+id/ipAddr"
+        android:text="Sensor Server IP"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+    <TextView
+        android:id = "@+id/connNum"
+        android:text=""
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/ipAddr"/>
 
 </RelativeLayout>
