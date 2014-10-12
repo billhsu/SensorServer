@@ -88,6 +88,13 @@ public class SensorServer extends Activity implements SensorEventListener {
     protected void onPause() {
         super.onPause();
         mSensorManager.unregisterListener(this);
+        try {
+            server.stop();
+        }
+        catch (Exception exp) {
+            Log.e(LOG_TAG, exp.toString());
+        }
+        finish();
     }
 
     @Override
