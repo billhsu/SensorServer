@@ -80,9 +80,9 @@ public class SensorServer extends Activity implements SensorEventListener {
 
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
-        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
-        mSensorManager.registerListener(this, mRotationVectorSensor, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, mRotationVectorSensor, SensorManager.SENSOR_DELAY_UI);
     }
 
     protected void onPause() {
@@ -105,25 +105,36 @@ public class SensorServer extends Activity implements SensorEventListener {
         return super.onOptionsItemSelected(item);
     }
 
+    private boolean acclRecvd = false, gyroRecvd = false, rotnRecvd = false;
+    private float[] acclData = new float[3];
+    private float[] gyroData = new float[3];
+    private float[] rotnData = new float[3];
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        float x,y,z;
         float[] orientation = new float[3];
-
-        x = sensorEvent.values[0];
-        y = sensorEvent.values[1];
-        z = sensorEvent.values[2];
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            server.sendToAll("ACCL: " + x + " " + y + " " + z);
+            acclRecvd = true;
+            System.arraycopy( sensorEvent.values, 0, acclData, 0, sensorEvent.values.length );
         }
         else if (sensorEvent.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            server.sendToAll("GYRO: " + x + " " + y + " " + z);
+            gyroRecvd = true;
+            System.arraycopy( sensorEvent.values, 0, gyroData, 0, sensorEvent.values.length );
         }
         else if (sensorEvent.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
             SensorManager.getRotationMatrixFromVector(
                     mRotationMatrix , sensorEvent.values);
             SensorManager.getOrientation(mRotationMatrix, orientation);
-            server.sendToAll("ROTN: " + orientation[0] + " " + orientation[1] + " " + orientation[2]);
+            rotnRecvd = true;
+            System.arraycopy( orientation, 0, rotnData, 0, orientation.length );
+        }
+        if(acclRecvd && gyroRecvd && rotnRecvd) {
+            String response = "ROTN: " + rotnData[0] + " " + rotnData[1] + " " + rotnData[2] + ";";
+            response += "ACCL: " + acclData[0] + " "+ acclData[1] + " "+ acclData[2] + ";";
+            response += "GYRO: " + gyroData[0] + " "+ gyroData[1] + " "+ gyroData[2] + ";";
+            server.sendToAll(response);
+            acclRecvd = false;
+            gyroRecvd = false;
+            rotnRecvd = false;
         }
     }
 
